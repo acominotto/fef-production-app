@@ -64,15 +64,16 @@ class PrintScreen extends StatelessWidget {
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   controller: c.piecesController,
                 ),
-                TextField(
-                  decoration: InputDecoration(
-                      labelText: 'Poids en grammes',
-                      labelStyle: TextStyle(fontSize: 24)),
-                  style: TextStyle(fontSize: 24),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  controller: c.weightController,
-                ),
+                if (c.context != null && !c.context!.product.isPricePerPiece)
+                  TextField(
+                    decoration: InputDecoration(
+                        labelText: 'Poids en grammes',
+                        labelStyle: TextStyle(fontSize: 24)),
+                    style: TextStyle(fontSize: 24),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    controller: c.weightController,
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 20, 0, 30),
                   child: ElevatedButton(

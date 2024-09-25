@@ -60,7 +60,10 @@ barcodeSide(Product product, num weight, String price, String code,
                         children: [
                           if (client.meta['pricePerKg'] != false)
                             textWithLabel(
-                                'prix / kg', '${product.price} ${eur}'),
+                                product.isPricePerPiece
+                                    ? 'prix / pièce'
+                                    : 'prix / kg',
+                                '${product.price} ${eur}'),
                           if (client.meta['weight'] != false)
                             pw.RichText(
                                 text: pw.TextSpan(children: [
@@ -171,7 +174,9 @@ class Barcode {
   static generate(PrintContext context, num weight, num pieces) async {
     var product = context.product;
     var client = context.client;
-    var price = ((product.price / 1000) * weight).toStringAsFixed(2);
+    var price = context.product.isPricePerPiece
+        ? (product.price * pieces).toStringAsFixed(2)
+        : ((product.price / 1000) * weight).toStringAsFixed(2);
     var code = generateCode(num.parse(price), product);
     var pdf = pw.Document();
     var back = await fefSide(product);

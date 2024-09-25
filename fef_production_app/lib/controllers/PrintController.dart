@@ -46,8 +46,12 @@ class PrintController extends GetxController {
     await m.protect(() async {
       var weightTxt = this.weightController.text;
       var piecesTxt = this.piecesController.text;
-      if (weightTxt != '') {
-        var weight = int.parse(weightTxt);
+      if ((context != null &&
+              context!.product.isPricePerPiece &&
+              piecesTxt != '') ||
+          weightTxt != '') {
+        var weight =
+            weightTxt == '' || weightTxt == '0' ? 0 : int.parse(weightTxt);
         var pieces =
             piecesTxt == '' || piecesTxt == '0' ? 0 : int.parse(piecesTxt);
 
