@@ -6,15 +6,30 @@ import 'package:fef_production_app/controllers/AuthController.dart';
 import 'package:fef_production_app/controllers/PrintController.dart';
 import 'package:fef_production_app/models/Client.dart';
 import 'package:fef_production_app/models/PrintContext.dart';
+import 'package:fef_production_app/models/Product.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 class ClientsController extends GetxController {
   var _clients = <Client>[].obs;
   var _currentClient = Rxn<Client>();
+  var _search = ''.obs;
 
   List<Client> get clients => this._clients.value;
   Client? get currentClient => this._currentClient.value;
+  String? get search => this._search.value;
+
+  List<Product> get searchResults {
+    if (currentClient == null) {
+      return [];
+    } else if (this.search == null) {
+      return currentClient!.products.values.toList();
+    } else
+      return currentClient!.products.values
+          .where(
+              (p) => p.name.toLowerCase().contains(this.search!.toLowerCase()))
+          .toList();
+  }
 
   fetchData() async {
     try {
@@ -45,6 +60,7 @@ class ClientsController extends GetxController {
 
   selectClient(Client c) {
     this._currentClient.value = c;
+    this._search.value = '';
     Get.toNamed(Routes.client);
   }
 
@@ -53,5 +69,9 @@ class ClientsController extends GetxController {
     var product = client.products[productId]!;
     Get.find<PrintController>().setContext(new PrintContext(client, product));
     Get.toNamed(Routes.print);
+  }
+
+  setSearch(String search) {
+    this._search.value = search;
   }
 }

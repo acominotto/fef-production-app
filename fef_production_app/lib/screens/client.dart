@@ -6,28 +6,49 @@ class ClientScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ClientsController c = Get.put(ClientsController());
+
     return Scaffold(
         appBar: AppBar(
           title: Obx(() => Text(c.currentClient?.name ?? 'No client')),
         ),
         body: SafeArea(
             child: c.currentClient == null
-                ? Text('No client')
-                : Obx(() => GridView.count(
-                    crossAxisCount: 2,
-                    children: c.currentClient!.products.keys
-                        .map((p) => InkWell(
-                              onTap: () {
-                                c.selectProduct(p);
-                              },
-                              child: Card(
-                                  child: Center(
-                                      child: Text(
-                                c.currentClient!.products[p]!.name,
-                                style: TextStyle(fontSize: 20),
-                                textAlign: TextAlign.center,
-                              ))),
-                            ))
-                        .toList()))));
+                ? Text(
+                    'No client',
+                    style: TextStyle(color: Colors.white),
+                  )
+                : Obx(
+                    () => ListView.separated(
+                      itemCount: c.searchResults.length + 1,
+                      padding: const EdgeInsets.only(top: 4),
+                      separatorBuilder: (context, index) => Divider(),
+                      itemBuilder: (context, index) {
+                        if (index == 0)
+                          return TextField(
+                            onChanged: (value) {
+                              c.setSearch(value);
+                            },
+                            decoration: InputDecoration(
+                                hintText: 'Rechercher un produit',
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12))),
+                          );
+                        else {
+                          var product = c.searchResults[index - 1];
+                          return ListTile(
+                            title: Text('${product.name}'),
+                            subtitle: c.currentClient?.meta?['price'] == false
+                                ? null
+                                : Text(
+                                    '${product.price}€/${product.isPricePerPiece ? 'p' : 'kg'}'),
+                            trailing: Icon(Icons.arrow_forward),
+                            onTap: () {
+                              c.selectProduct(product.id);
+                            },
+                          );
+                        }
+                      },
+                    ),
+                  )));
   }
 }

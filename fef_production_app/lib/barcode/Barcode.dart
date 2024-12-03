@@ -64,7 +64,7 @@ barcodeSide(Product product, num weight, String price, String code,
                                     ? 'prix / pièce'
                                     : 'prix / kg',
                                 '${product.price} ${eur}'),
-                          if (client.meta['weight'] != false)
+                          if (client.meta['weight'] != false && weight > 0)
                             pw.RichText(
                                 text: pw.TextSpan(children: [
                               pw.TextSpan(
@@ -101,6 +101,11 @@ barcodeSide(Product product, num weight, String price, String code,
         ]),
         textWithLabel('Composition', product.composition,
             fontSize: product.composition.length > 150 ? 5 : 6),
+        if (product.allergens != null && product.allergens != '')
+          textWithLabel(
+            'Allergènes',
+            product.allergens!,
+          )
       ]);
 }
 
@@ -126,13 +131,13 @@ fefSide(Product product) async {
                     text: pw.TextSpan(children: [
                   pw.TextSpan(
                     text:
-                        '18 rue de l\'abbé Seny\n57480 Kerling-lès-Sierck\nfievetetfils.wkc@gmail.com',
+                        '18 rue de l\'abbé Senzy\n57480 Kerling-lès-Sierck\nfievetetfils.wkc@gmail.com',
                     style: pw.TextStyle(
                       fontWeight: pw.FontWeight.bold,
                       fontSize: 6,
                     ),
                   ),
-                ]))
+                ])),
               ]))
     ]),
   );
