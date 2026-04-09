@@ -87,7 +87,7 @@ barcodeSide(Product product, num weight, String price, String code,
                         'Lot', DateFormat('yyyyMMdd').format(date) + '01'),
                     textWithLabel('Conservation', product.conservation.how),
                   ])),
-          if (client.meta['logo'] == null || client.meta['logo'] == false)
+          if (client.meta['noBarCode'] != true)
             pw.Expanded(
                 flex: 2,
                 child: pw.BarcodeWidget(
@@ -109,44 +109,48 @@ barcodeSide(Product product, num weight, String price, String code,
       ]);
 }
 
-fefSide(Product product) async {
+fefSide(Product product, PrintContext context) async {
   final data = await rootBundle.load('assets/images/wkc-logo.png');
   final img = pw.MemoryImage(data.buffer.asUint8List());
+
   return pw.Container(
     padding: pw.EdgeInsets.only(top: 5),
     child: pw.Row(children: [
-      pw.Image(img, height: 70, width: 70),
-      pw.Container(
-          padding: pw.EdgeInsets.only(left: 4),
-          child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text("Fievet et fils",
-                    textAlign: pw.TextAlign.left,
-                    style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
-                      fontSize: 8,
-                    )),
-                pw.RichText(
-                    text: pw.TextSpan(children: [
-                  pw.TextSpan(
-                    text:
-                        '18 rue de l\'abbé Senzy\n57480 Kerling-lès-Sierck\nfievetetfils.wkc@gmail.com',
-                    style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
-                      fontSize: 6,
+      if (context.client.meta['logo'] != false)
+        pw.Image(img, height: 70, width: 70),
+      if (context.client.meta['address'] != false)
+        pw.Container(
+            padding: pw.EdgeInsets.only(left: 4),
+            child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text("Fievet et fils",
+                      textAlign: pw.TextAlign.left,
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 8,
+                      )),
+                  pw.RichText(
+                      text: pw.TextSpan(children: [
+                    pw.TextSpan(
+                      text:
+                          '18 rue de l\'abbé Senzy\n57480 Kerling-lès-Sierck\nfievetetfils.wkc@gmail.com',
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 6,
+                      ),
                     ),
-                  ),
-                ])),
-              ]))
+                  ])),
+                ]))
     ]),
   );
 }
 
-String generateCode(num price, Product p) {
-  var code = p.barcodePrefix +
-      (price * 100 * 6.55957).round().toString().padLeft(5, "0");
-  return code;
+String generateCode(num price, Product p, String barcodePriceBase) {
+  final encoded = barcodePriceBase == 'euro'
+      ? (price * 100).round()
+      : (price * 100 * 6.55957).round();
+  return p.barcodePrefix + encoded.toString().padLeft(5, "0");
 }
 
 String getCheckSum(String code) {
@@ -182,12 +186,15 @@ class Barcode {
     var price = context.product.isPricePerPiece
         ? (product.price * pieces).toStringAsFixed(2)
         : ((product.price / 1000) * weight).toStringAsFixed(2);
-    var code = generateCode(num.parse(price), product);
+    var code =
+        generateCode(num.parse(price), product, client.barcodePriceBase);
     var pdf = pw.Document();
-    var back = await fefSide(product);
+    var back = await fefSide(product, context);
+    var isLong = context.client.meta['logo'] != false &&
+        context.client.meta['address'] != false;
     pdf.addPage(pw.Page(
         pageTheme: pw.PageTheme(
-            pageFormat: PdfPageFormat(62 * mm, 63 * mm),
+            pageFormat: PdfPageFormat(62 * mm, isLong ? 63 * mm : 43 * mm),
             theme: pw.ThemeData(
                 header0: pw.TextStyle(
                     fontSize: 10,

@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/usr/local/Caskroom/flutter/2.2.3/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/grinn/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/grinn/dev/grinnfold/fef-production-app/fef_production_app/android/app/.cxx/RelWithDebInfo/4t5p4s6n/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/grinn/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/grinn/dev/grinnfold/fef-production-app/fef_production_app/android/app/.cxx/RelWithDebInfo/4t5p4s6n/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

@@ -28,9 +28,17 @@ class PrintScreen extends StatelessWidget {
               )),
         ),
         floatingActionButton: Obx(() => FloatingActionButton(
-              backgroundColor: c.canPrint ? Colors.green : Colors.red,
+              backgroundColor: c.canPrint
+                  ? c.isBlackAndWhite
+                      ? Colors.grey
+                      : Colors.green
+                  : Colors.red,
               onPressed: () {
-                c.refreshPrinters();
+                if (c.canPrint) {
+                  c.toggleBlackAndWhite();
+                } else {
+                  c.refreshPrinters();
+                }
               },
               child: Icon(Icons.print),
             )),

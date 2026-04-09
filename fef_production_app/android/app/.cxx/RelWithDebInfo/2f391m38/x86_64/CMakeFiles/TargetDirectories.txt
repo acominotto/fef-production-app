@@ -1,0 +1,2 @@
+/Users/grinn/dev/grinnfold/fef-production-app/fef_production_app/android/app/.cxx/RelWithDebInfo/2f391m38/x86_64/CMakeFiles/edit_cache.dir
+/Users/grinn/dev/grinnfold/fef-production-app/fef_production_app/android/app/.cxx/RelWithDebInfo/2f391m38/x86_64/CMakeFiles/rebuild_cache.dir

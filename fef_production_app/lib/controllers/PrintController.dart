@@ -1,8 +1,14 @@
+import 'dart:convert';
+
 import 'package:brother_printer/brother_printer.dart';
 import 'package:fef_production_app/barcode/Barcode.dart';
+import 'package:fef_production_app/const/Env.dart';
+import 'package:fef_production_app/controllers/AuthController.dart';
 import 'package:fef_production_app/models/PrintContext.dart';
+import 'package:fef_production_app/models/ticket.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:mutex/mutex.dart';
 import 'package:open_file/open_file.dart';
@@ -17,12 +23,39 @@ class PrintController extends GetxController {
   final dateController = TextEditingController(text: f.format(DateTime.now()));
   var _weights = RxList(<int>[]);
   var _printer = Rxn<BrotherDevice>();
+  var _isBlackAndWhite = Rx(false);
   final m = Mutex();
 
   bool get canPrint => this._printer.value != null;
   PrintContext? get context => this._context.value;
+  bool get isBlackAndWhite => this._isBlackAndWhite.value;
   get printer => this._printer.value!;
   List<int> get weights => this._weights.toList(growable: true);
+
+  addToProduction(Ticket ticket) async {
+    try {
+      var body = jsonEncode(ticket.toJson());
+      var token = Get.find<AuthController>().token;
+      print('print ticket: ' + body.toString());
+      var response = await http.post(
+          Uri.parse('${Env.BackendURL}/mobile/v1/ticket-print'),
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+            'Cookie': 'fef-cookie=${token}'
+          },
+          body: body);
+
+      if (response.statusCode == 200) {
+        //Get.snackbar('Succès', 'Ticket added to production');
+      } else {
+        print('response status: ' + response.statusCode.toString());
+        //Get.snackbar('Erreur', 'Failed to add ticket to production');
+      }
+    } catch (e) {
+      print('error: ' + e.toString());
+      Get.snackbar('Error while fetching clients', e.toString());
+    }
+  }
 
   void changeDate(DateTime dt) {
     this.dateController.text = f.format(dt);
@@ -44,6 +77,9 @@ class PrintController extends GetxController {
 
   printBarcode() async {
     await m.protect(() async {
+      var labelSize = isBlackAndWhite
+          ? BrotherLabelSize.QLRollW62
+          : BrotherLabelSize.QLRollW62RB;
       var weightTxt = this.weightController.text;
       var piecesTxt = this.piecesController.text;
       if ((context != null &&
@@ -57,15 +93,29 @@ class PrintController extends GetxController {
 
         print('printing ${context!.clientId} ${context!.product.id} ${weight}');
         final path = await Barcode.generate(context!, weight, pieces);
+        var ticket =
+            Ticket(weight, pieces, context!.clientId, context!.product.id);
         try {
           await BrotherPrinter.printPDF(
-              path: path,
-              device: printer,
-              labelSize: BrotherLabelSize.QLRollW62RB);
+              path: path, device: printer, labelSize: labelSize);
+
+          this.addToProduction(ticket);
           this._weights.add(weight);
         } catch (e) {
-          OpenFile.open(path);
-          Get.snackbar("Erreur", e.toString());
+          try {
+            await BrotherPrinter.printPDF(
+                path: path,
+                device: printer,
+                labelSize: labelSize == BrotherLabelSize.QLRollW62
+                    ? BrotherLabelSize.QLRollW62RB
+                    : BrotherLabelSize.QLRollW62);
+            this.addToProduction(ticket);
+            this._weights.add(weight);
+          } catch (e) {
+            this.addToProduction(ticket);
+            OpenFile.open(path);
+            Get.snackbar("Erreur", e.toString());
+          }
         }
       }
     });
@@ -98,5 +148,9 @@ class PrintController extends GetxController {
   setContext(PrintContext ctx) {
     this._context.value = ctx;
     _weights.value = [];
+  }
+
+  toggleBlackAndWhite() {
+    this._isBlackAndWhite.value = !this._isBlackAndWhite.value;
   }
 }
